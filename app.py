@@ -1,4 +1,5 @@
 import os
+from dotenv import load_dotenv
 import gdown
 import pickle
 import requests
@@ -9,25 +10,37 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from flask_bcrypt import Bcrypt
 
+
+# Load environment variables from the .env file
+load_dotenv()
+
+
 def download_similarity_model():
     file_path = 'similarity.pkl'
     if not os.path.exists(file_path):
         print("Downloading similarity model from Google Drive...")
-        url = 'https://drive.google.com/uc?id=1y8ufm0Ut0V3s3yVN4ORSMk0HgsVtRm2b'  # Replace with your file ID
-        gdown.download(url, file_path, quiet=False)
+        gdrive_url = os.getenv('GDRIVE_MODEL_URL')  # Fetch URL from .env
+        gdown.download(gdrive_url, file_path, quiet=False)
     else:
         print("Similarity model already exists locally.")
 
+
 # Call the download function
 download_similarity_model()
+
 
 # Initialize the Flask application
 app = Flask(__name__)
 
 # Configuration for the application
-app.config['SECRET_KEY'] = 'zbdfhkasjdn12023n3n33acey'  # Change this to a random key for production
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///users.db'  # Database URI
+app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
+app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('SQLALCHEMY_DATABASE_URI')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False  # Disable track modifications
+OMDB_API_KEY = os.getenv('OMDB_API_KEY')
+YOUTUBE_API_KEY = os.getenv('YOUTUBE_API_KEY')
+GDRIVE_MODEL_URL = os.getenv('GDRIVE_MODEL_URL')
+
+
 
 # Initialize database and authentication extensions
 db = SQLAlchemy(app)
@@ -49,8 +62,7 @@ movies_dict = pickle.load(open('movie_dict.pkl', 'rb'))
 movies = pd.DataFrame(movies_dict)
 similarity = pickle.load(open('similarity.pkl', 'rb'))
 
-# Load the OMDb API key
-OMDB_API_KEY = 'b76c8d3e'  # Replace with your actual API key
+
 
 # Function to fetch movie poster from OMDb using movie title
 def fetch_movie_poster(movie_title):
@@ -64,18 +76,16 @@ def fetch_movie_poster(movie_title):
     print(f"No poster found for the movie: {movie_title}")
     return None
 
+
 def fetch_movie_trailer(movie_title):
-    # Example implementation: Fetch trailer using YouTube Data API
-    API_KEY = "AIzaSyBVq7EcwZRflVF2LRZUYB9S8T6mlgPpAm0"
-    url = f"https://www.googleapis.com/youtube/v3/search?part=snippet&q={movie_title}+official+trailer&type=video&maxResults=1&key={API_KEY}"
+    url = f"https://www.googleapis.com/youtube/v3/search?part=snippet&q={movie_title}+official+trailer&type=video&maxResults=1&key={YOUTUBE_API_KEY}"
     
     response = requests.get(url)
     if response.status_code == 200:
         data = response.json()
-        # Check if items are returned
         if 'items' in data and len(data['items']) > 0:
-            video_id = data['items'][0]['id']['videoId']  # Extract the videoId
-            return f"https://www.youtube.com/watch?v={video_id}"  # Construct the trailer link
+            video_id = data['items'][0]['id']['videoId']
+            return f"https://www.youtube.com/watch?v={video_id}"
     return None
 
 
