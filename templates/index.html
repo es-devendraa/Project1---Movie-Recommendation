@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Movie Recommender System - Get movie recommendations based on your favorites."
+    />
+    <meta
+      name="keywords"
+      content="movie recommendations, movie posters, favorite movies"
+    />
+    <meta name="author" content="Your Name" />
+    <title>Movie Recommender System</title>
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/bootswatch/5.1.3/lux/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <style>
+     
+      .overlay {
+        background-color: rgba(0, 0, 0, 0.7);
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 1;
+      }
+      .container {
+        z-index: 2;
+        position: relative;
+        margin-top: 100px;
+        text-align: center;
+        color: white;
+      }
+      .content-box {
+        background: rgba(0, 0, 0, 0.8);
+        padding: 30px;
+        border-radius: 10px;
+      }
+      h1 {
+        margin-bottom: 30px;
+        font-size: 3rem;
+        font-style: 'san';
+        font-weight: bold;
+        color: white;
+      }
+      .btn-primary {
+        background-color: #ff0000;
+        border: none;
+        padding: 10px 20px;
+        transition: background-color 0.3s ease;
+      }
+      .btn-primary:hover {
+        background-color: #cc0000;
+      }
+      select {
+        padding: 10px;
+        font-size: 1rem;
+      }
+      .recommended-movies {
+        margin-top: 20px;
+      }
+      .recommended-movie {
+        text-align: center;
+      }
+      .recommended-movie img {
+        width: 150px;
+        height: auto;
+        border-radius: 10px;
+      }
+      .recommended-movie h5 {
+        margin-top: 8px;
+        font-size: 1.2rem;
+        font-display: inherit;
+        color: white;
+      }
+      #dropdown-movie-list {
+        display: none;
+        position: absolute;
+        background-color: white;
+        max-height: 150px;
+        overflow-y: auto;
+        border: 1px solid #ccc;
+        width: 100%;
+        z-index: 1000;
+      }
+      #dropdown-movie-list option {
+        padding: 10px;
+        cursor: pointer;
+      }
+      #dropdown-movie-list option:hover {
+        background-color: #f1f1f1;
+      }
+      /* Navbar Styling */
+.navbar {
+  position: fixed;
+  top: 0;
+  width: 100%;
+  z-index: 1000;
+  background-color: #;
+  box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.5);
+}
+
+.navbar-brand {
+  color: white;
+  font-size: 1.5rem;
+}
+
+.navbar-nav .nav-link {
+  color: white;
+  padding: 10px;
+  font-size: 1rem;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.navbar-nav .nav-link:hover {
+  background-color: #ff6666;
+  color: black;
+}
+
+#trailer-container {
+  display: none;
+  text-align: center;
+}
+
+#trailer-frame {
+  margin: 0 auto;
+  border: 2px solid #ff0000;
+  border-radius: 10px;
+}
+
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .navbar-nav .nav-link {
+    font-size: 0.9rem;
+  }
+}
+
+/* Content padding to avoid overlap with fixed navbar */
+.content {
+  padding-top: 80px;
+}
+
+    </style>
+  </head>
+  <body>
+    <div class="overlay"></div>
+
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-green fixed-top">
+      <div class="container-fluid">
+        <a class="navbar-brand" href="{{ url_for('home') }}">MyRecommends</a>
+        <button
+          class="navbar-toggler"
+          type="button"
+          data-bs-toggle="collapse"
+          data-bs-target="#navbarNav"
+          aria-controls="navbarNav"
+          aria-expanded="false"
+          aria-label="Toggle navigation"
+        >
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+          <ul class="navbar-nav ms-auto">
+            {% if current_user.is_authenticated %}
+            <li class="nav-item">
+              <a class="nav-link" href="{{ url_for('dashboard') }}"
+                >Dashboard</a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="{{ url_for('logout') }}">Logout</a>
+            </li>
+            {% else %}
+            <li class="nav-item">
+              <a class="nav-link" href="{{ url_for('login') }}">Login</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="{{ url_for('register') }}">Register</a>
+            </li>
+            {% endif %}
+            <li class="nav-item">
+              <a class="nav-link" href="{{ url_for('home') }}">Home</a>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+
+    <div class="container content">
+      <div class="content-box">
+        <h1>Welcome to MyRecommends</h1>
+
+        <!-- Movie Selection Form -->
+        <form action="/recommend" method="POST">
+          <div class="mb-3">
+            <label for="search-movie" class="form-label">Search a Movie</label>
+            <input
+              type="text"
+              id="search-movie"
+              class="form-control"
+              placeholder="Search for a movie..."
+              autocomplete="off"
+              onclick="showDropdown()"
+              onkeyup="filterMovies()"
+              aria-describedby="movieHelp"
+            />
+            <small id="movieHelp" class="form-text text-muted"
+              >Type to search for a movie.</small
+            >
+
+            <!-- Dropdown to show filtered movies -->
+            <div id="dropdown-movie-list" class="dropdown-content">
+              <select
+                class="form-select"
+                id="movie"
+                name="movie"
+                size="5"
+                onclick="selectMovie()"
+              >
+                {% for movie in movie_list %}
+                <option value="{{ movie }}">{{ movie }}</option>
+                {% endfor %}
+              </select>
+            </div>
+          </div>
+          <button type="submit" class="btn btn-primary">Recommend</button>
+        </form>
+
+        <div id="trailer-container" style="display: none; margin-top: 20px;">
+          <iframe
+            id="trailer-frame"
+            width="560"
+            height="315"
+            src=""
+            frameborder="0"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowfullscreen
+          ></iframe>
+        </div>
+
+        <div id="trailer-container" style="display: none; margin-top: 20px;">
+          <button
+            onclick="closeTrailer()"
+            style="background-color: #ff0000; color: white; border: none; padding: 5px 10px; margin-bottom: 10px; cursor: pointer;"
+          >
+            Close Trailer
+          </button>
+          <iframe
+            id="trailer-frame"
+            width="560"
+            height="315"
+            src=""
+            frameborder="0"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowfullscreen
+          ></iframe>
+        </div>
+        
+        <!-- Recommended Movies Section -->
+        {% if recommendations %}
+        <div class="row recommended-movies">
+          {% for movie, poster, trailer in zip(recommendations, posters, trailers) %}
+              <div class="col-sm-6 col-md-4 col-lg-3 recommended-movie">
+                  <a href="#" onclick="playTrailer('{{ trailer }}')">
+                      <img src="{{ poster if poster else 'https://via.placeholder.com/150?text=No+Poster' }}" alt="{{ movie }} poster" class="img-fluid">
+                      <h5>{{ movie }}</h5>
+                  </a>
+              </div>
+          {% endfor %}
+      </div>
+        {% else %}
+        <p>No recommendations available for the selected movie.</p>
+        {% endif %}
+      </div>
+    </div>
+
+    <script>
+      function filterMovies() {
+        const searchInput = document
+          .getElementById("search-movie")
+          .value.toLowerCase();
+        const movieSelect = document.getElementById("movie");
+        const options = movieSelect.getElementsByTagName("option");
+
+        let hasResults = false;
+        for (let i = 0; i < options.length; i++) {
+          const movieName = options[i].value.toLowerCase();
+          options[i].style.display = movieName.includes(searchInput)
+            ? ""
+            : "none";
+          if (options[i].style.display === "") {
+            hasResults = true;
+          }
+        }
+
+        document.getElementById("dropdown-movie-list").style.display =
+          hasResults ? "block" : "none";
+      }
+
+      function showDropdown() {
+        document.getElementById("dropdown-movie-list").style.display = "block";
+      }
+
+      function selectMovie() {
+        const movieSelect = document.getElementById("movie");
+        const searchInput = document.getElementById("search-movie");
+        searchInput.value = movieSelect.value;
+        document.getElementById("dropdown-movie-list").style.display = "none";
+      }
+
+      document.addEventListener("click", function (event) {
+        const searchInput = document.getElementById("search-movie");
+        const dropdown = document.getElementById("dropdown-movie-list");
+        if (
+          !searchInput.contains(event.target) &&
+          !dropdown.contains(event.target)
+        ) {
+          dropdown.style.display = "none";
+        }
+      });
+      function playTrailer(trailerUrl) {
+        const trailerContainer = document.getElementById("trailer-container");
+        const trailerFrame = document.getElementById("trailer-frame");
+      
+        if (trailerUrl) {
+          // Update the iframe source with the YouTube trailer URL
+          trailerFrame.src = trailerUrl.replace("watch?v=", "embed/");
+          trailerContainer.style.display = "block"; // Show the trailer container
+        } else {
+          alert("Trailer not available.");
+        }
+      }
+
+      function closeTrailer() {
+        const trailerContainer = document.getElementById("trailer-container");
+        const trailerFrame = document.getElementById("trailer-frame");
+        
+        trailerFrame.src = ""; // Reset the iframe source
+        trailerContainer.style.display = "none"; // Hide the trailer container
+      }
+      
+    </script>
+  </body>
+</html>

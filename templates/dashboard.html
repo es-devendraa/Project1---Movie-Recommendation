@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css">
+    <style>
+        body {
+            background-color: #f8f9fa; /* Light background color */
+            color: #343a40; /* Dark text color */
+            font-family: Arial, sans-serif; /* Font style */
+        }
+        h1, h2 {
+            color: #905454; /* Brown color for the title */
+        }
+        .btn-primary {
+            background-color: #905454; /* Brown color for button */
+            border: none;
+        }
+        .btn-primary:hover {
+            background-color: #7a4242; /* Darker brown on hover */
+        }
+        .container {
+            margin-top: 50px; /* Space from the top */
+            padding: 20px; /* Padding around the content */
+            border-radius: 5px; /* Rounded corners */
+            background-color: white; /* White background for the container */
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+        }
+        .btn {
+            margin-right: 10px; /* Space between buttons */
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="mt-5">Welcome to Your Movie Recommendation Dashboard!</h1>
+        <h2>Hello, {{ name }}!</h2>
+        <p class="mt-4">Here you can find your movie recommendations and history.</p>
+        <h1>Welcome, {{ name }}</h1>
+        <h2>Your Movie History</h2>
+        
+        <table>
+            <thead>
+                <tr>
+                    <th>Movie Title</th>
+                    <th>Accessed At</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for entry in history %}
+                    <tr>
+                        <td>{{ entry.movie_title }}</td>
+                        <td>{{ entry.accessed_at.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        
+        <div class="mt-5">
+            <a href="/" class="btn btn-primary">Go to Home</a>
+            <a href="{{ url_for('logout') }}" class="btn btn-danger">Logout</a>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

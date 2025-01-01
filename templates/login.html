@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}"> <!-- Link to your external CSS -->
+    <style>
+        body {
+            background-color: #f8f9fa; /* Light background color */
+        }
+        .container {
+            max-width: 400px; /* Limit container width */
+            margin-top: 100px; /* Space from the top */
+            padding: 20px; /* Padding around the content */
+            background-color: white; /* White background for the container */
+            border-radius: 5px; /* Rounded corners */
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+        }
+        h2 {
+            color: #905454; /* Brown color for the title */
+        }
+        input.form-control {
+            padding: 10px; /* Add padding to prevent text cutoff */
+            font-size: 1rem; /* Ensure the font size is readable */
+        }
+        .btn-primary {
+            background-color: #905454; /* Brown button color */
+            border: none;
+            padding: 10px 0;
+            font-size: 1rem;
+        }
+        .btn-primary:hover {
+            background-color: #7c4646; /* Slightly darker shade for hover */
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2 class="text-center">Login</h2>
+        <form method="POST" action="{{ url_for('login') }}">
+            <div class="mb-3">
+                <label for="username" class="form-label">Username</label>
+                <input type="text" name="username" id="username" class="form-control" placeholder="Enter Username" required>
+            </div>
+            <div class="mb-3">
+                <label for="password" class="form-label">Password</label>
+                <input type="password" name="password" id="password" class="form-control" placeholder="Enter Password" required>
+            </div>
+            <button type="submit" class="btn btn-primary w-100">Login</button>
+            <div class="mt-3">
+                <p class="text-center">Don't have an account? <a href="{{ url_for('register') }}">Register here</a>.</p>
+            </div>
+        </form>
+        {% with messages = get_flashed_messages() %}
+          {% if messages %}
+            <div class="mt-3">
+                <ul class="list-unstyled">
+                    {% for message in messages %}
+                        <li class="text-danger">{{ message }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+          {% endif %}
+        {% endwith %}
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
+
+
+
+
